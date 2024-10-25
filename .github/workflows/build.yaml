@@ -6,6 +6,7 @@ on:
     paths:
       - '**/*.tex'
       - '**/*.bib'
+      - '**/*.mk4'
 
 jobs:
   build-pdf:
@@ -30,12 +31,12 @@ jobs:
     - uses: docker://pandoc/core:3.5
       with:
         args: "-s root.tex -o root.md"
+    - name: Install texlive
+      run: sudo apt install -y texlive-full
     - name: Run make4ht
-      uses: docker://ghcr.io/michal-h21/make4ht-action:latest
-      env:
-        command: "make4ht -s -u -x --format odt root.tex"
+      run: make4ht -s -u -x --format odt --loglevel info -e build.mk4 root.tex || exit 0
     - name: Install libreoffice
-      run: apt install -y libreoffice
+      run: sudo apt install -y libreoffice
     - name: Convert to docx
       run: soffice --convert-to docx root.odt
     - uses: actions/upload-artifact@v4
