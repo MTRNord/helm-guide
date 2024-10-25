@@ -1,0 +1,22 @@
+name: Build PDF
+
+on:
+  push:
+    paths:
+      - '**/*.tex'
+      - '**/*.bib'
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: docker://ghcr.io/qjoly/xelatex:latest
+      with:
+        args: |
+          root.tex
+    - uses: actions/upload-artifact@v2
+      with:
+        name: document
+        path: |
+          root.pdf
