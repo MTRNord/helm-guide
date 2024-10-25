@@ -312,3 +312,8 @@ root_html/
 *.ps
 root.md
 root.docx
+.~*
+*.html
+*.odt
+*.tmp
+*.css

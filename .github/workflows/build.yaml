@@ -30,12 +30,18 @@ jobs:
     - uses: docker://pandoc/core:3.5
       with:
         args: "-s root.tex -o root.md"
-    - uses: docker://pandoc/core:3.5
-      with:
-        args: "-s root.tex -o root.docx --citeproc"
+    - name: Run make4ht
+      uses: docker://ghcr.io/michal-h21/make4ht-action:latest
+      env:
+        command: "make4ht -s -u -x --format odt root.tex"
+    - name: Install libreoffice
+      run: apt install -y libreoffice
+    - name: Convert to docx
+      run: soffice --convert-to docx root.odt
     - uses: actions/upload-artifact@v4
       with:
         name: pandoc
         path: |
           root.md
+          root.odt
           root.docx
