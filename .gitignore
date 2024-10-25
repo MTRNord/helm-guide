@@ -308,3 +308,6 @@ TSWLatexianTemp*
 *.ist
 *.pdf
 *.kate-swp
+root_html/
+*.ps
+root.md
