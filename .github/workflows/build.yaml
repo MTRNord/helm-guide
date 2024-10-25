@@ -11,12 +11,12 @@ jobs:
   build-pdf:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: docker://ghcr.io/qjoly/xelatex:latest
       with:
         args: |
           root.tex
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: document
         path: |
