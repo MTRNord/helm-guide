@@ -12,10 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: docker://ghcr.io/qjoly/xelatex:latest
+    - name: Compile LaTeX document
+      uses: xu-cheng/latex-action@v3
       with:
-        args: |
-          root.tex
+        root_file: root.tex
+        latexmk_use_xelatex: true
+        latexmk_shell_escape: true
     - uses: actions/upload-artifact@v4
       with:
         name: document
