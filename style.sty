@@ -1,0 +1,77 @@
+\usepackage[english]{babel}
+\usepackage{scrhack}
+\usepackage[headsepline,automark,autooneside=false]{scrlayer-scrpage}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{minted}
+\usepackage{csquotes}
+\usepackage{lastpage}
+\usepackage{tcolorbox}
+\usepackage{setspace}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{dirtree}
+\usepackage[acronym]{glossaries-extra}
+\usepackage[
+backend=biber,
+style=ieee,
+defernumbers=true,
+]{biblatex}
+\usepackage{comment}
+\usepackage{mdframed}
+\usepackage{caption}
+
+% Fix for missing dates
+\usepackage{xpatch}
+\xpatchbibdriver{online}
+{\printtext[parens]{\usebibmacro{date}}}
+{\iffieldundef{year}
+	{}
+	{\printtext[parens]{\usebibmacro{date}}}}
+{}
+{\typeout{There was an error patching biblatex-ieee (specifically, ieee.bbx's @online driver)}}
+
+\onehalfspacing
+
+% Setup hyperref
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	urlcolor=blue
+}
+
+% Setup headers
+\clearpairofpagestyles
+\ihead{Helm - A Quickstart Guide and Styleguide}
+\ohead{\leftmark}
+\cfoot*{\pagemark\ of \pageref*{LastPage}}
+\setkomafont{pagenumber}{}
+\renewcommand\chapterpagestyle{scrheadings}
+
+% Setup nicer chapters
+\newcommand\titlerule[1][1pt]{\rule{\textwidth}{#1}}
+
+\RedeclareSectionCommand[innerskip=0pt]{chapter}
+
+\renewcommand\chapterlineswithprefixformat[3]{%
+	#2\nobreak%
+	\Ifstr{#2}{}{}{\kern-\dp\strutbox}%
+	\titlerule\par\nobreak%
+	#3%
+	\par\nobreak\titlerule%
+}
+
+\makeatletter
+\renewcommand\chapterlinesformat[3]{%
+	\titlerule\par\nobreak%
+	\@hangfrom{#2}{#3}%
+	\par\nobreak\titlerule%
+}
+\makeatother
+
+% Setup glossary
+\setabbreviationstyle[acronym]{long-short}

@@ -13,13 +13,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Compile LaTeX document
-      uses: xu-cheng/latex-action@v3
+    - name: Install texlive
+      run: sudo apt install -y texlive-full
+    - uses: actions/setup-java@v4
       with:
-        root_file: root.tex
-        latexmk_use_xelatex: true
-        latexmk_shell_escape: true
+        distribution: 'graalvm' # See 'Supported distributions' for available options
+        java-version: '21'
+    - name: Compile arara
+      run: ./compile.sh
+    - name: Compile LaTeX document
+      run: ./build.sh
     - uses: actions/upload-artifact@v4
+      working-directory: build
       with:
         name: pdf
         path: |
@@ -28,18 +33,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: docker://pandoc/core:3.5
+    - uses: actions/setup-java@v4
       with:
-        args: "-s root.tex -o root.md"
+        distribution: 'graalvm' # See 'Supported distributions' for available options
+        java-version: '21'
+    - name: Compile arara
+      run: ./compile.sh
     - name: Install texlive
       run: sudo apt install -y texlive-full
+    - name: Compile LaTeX document
+      run: ./build.sh
+    - uses: docker://pandoc/core:3.5
+      working-directory: build
+      with:
+        args: "-s root.tex -o root.md"
     - name: Run make4ht
+      working-directory: build
       run: make4ht -s -u -x --format odt --loglevel info -e build.mk4 root.tex || exit 0
     - name: Install libreoffice
+      working-directory: build
       run: sudo apt install -y libreoffice
     - name: Convert to docx
+      working-directory: build
       run: soffice --convert-to docx root.odt
     - uses: actions/upload-artifact@v4
+      working-directory: build
       with:
         name: pandoc
         path: |

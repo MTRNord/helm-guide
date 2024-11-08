@@ -317,3 +317,6 @@ root.docx
 *.odt
 *.tmp
 *.css
+
+build/
+arara/
