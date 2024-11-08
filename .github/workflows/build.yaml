@@ -47,7 +47,7 @@ jobs:
       run: "pandoc -s root.tex -o root.md"
     - name: Run make4ht
       working-directory: build
-      run: make4ht -s -u -x --format odt --loglevel info -e ../build.mk4 root.tex || exit 0
+      run: make4ht -s -u -l --format odt --loglevel info -e ../build.mk4 root.tex || exit 0
     - name: Convert to docx
       working-directory: build
       run: soffice --convert-to docx root.odt
