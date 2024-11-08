@@ -39,18 +39,15 @@ jobs:
     - name: Compile arara
       run: ./compile.sh
     - name: Install texlive
-      run: sudo apt install -y texlive-full
+      run: sudo apt install -y libreoffice pandoc texlive-full
     - name: Compile LaTeX document
       run: ./build.sh
-    - uses: docker://pandoc/core:3.5
-      with:
-        args: "-s build/root.tex -o build/root.md"
+    - name: Build markdown
+      working-directory: build
+      run: "pandoc -s root.tex -o root.md"
     - name: Run make4ht
       working-directory: build
-      run: make4ht -s -u -x --format odt --loglevel info -e build.mk4 root.tex || exit 0
-    - name: Install libreoffice
-      working-directory: build
-      run: sudo apt install -y libreoffice
+      run: make4ht -s -u -x --format odt --loglevel info -e ../build.mk4 root.tex || exit 0
     - name: Convert to docx
       working-directory: build
       run: soffice --convert-to docx root.odt
