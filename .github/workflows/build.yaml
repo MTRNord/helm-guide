@@ -43,9 +43,8 @@ jobs:
     - name: Compile LaTeX document
       run: ./build.sh
     - uses: docker://pandoc/core:3.5
-      working-directory: build
       with:
-        args: "-s root.tex -o root.md"
+        args: "-s build/root.tex -o build/root.md"
     - name: Run make4ht
       working-directory: build
       run: make4ht -s -u -x --format odt --loglevel info -e build.mk4 root.tex || exit 0
