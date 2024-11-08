@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 rm -r build
 mkdir -p build

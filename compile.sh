@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 git clone https://gitlab.com/islandoftex/arara.git --depth 1
 pushd arara
