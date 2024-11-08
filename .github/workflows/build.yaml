@@ -24,11 +24,10 @@ jobs:
     - name: Compile LaTeX document
       run: ./build.sh
     - uses: actions/upload-artifact@v4
-      working-directory: build
       with:
         name: pdf
         path: |
-          root.pdf
+          build/root.pdf
   build-pandoc:
     runs-on: ubuntu-latest
     steps:
@@ -57,10 +56,9 @@ jobs:
       working-directory: build
       run: soffice --convert-to docx root.odt
     - uses: actions/upload-artifact@v4
-      working-directory: build
       with:
         name: pandoc
         path: |
-          root.md
-          root.odt
-          root.docx
+          build/root.md
+          build/root.odt
+          build/root.docx
