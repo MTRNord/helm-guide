@@ -1,0 +1,270 @@
+A Helm Package follows a strict structure of files and folders.
+The typical structure looks like this\footnote{The test-connection.yaml file can be named anything.
+	This is the default name you get in the official template.}:
+\dirtree{%
+ .1 .
+ .2 Chart.yaml.
+ .2 README.md.
+ .2 templates.
+ .3 \_helpers.yaml.
+ .3 NOTES.txt.
+ .3 tests.
+ .4 test-connection.yaml.
+ .2  values.yaml.
+}
+\clearpage
+
+\section{The \enquote{Chart.yaml}}
+This is the file defining the metadata of the Helm Chart.
+Important fields are the name, description, type, version and appVersion fields.
+Most of these are self-explanatory.
+Below the special fields will be explained.
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
+apiVersion: v2
+name: matrix-neoboard-widget
+description: A whiteboard widget for the Element messenger
+type: application
+version: 0.1.0
+appVersion: "0.0.0"
+home: https://github.com/nordeck/matrix-neoboard
+\end{minted}
+\caption{A simple application Chart.yaml}\label{code:Chart.yaml}
+\end{figure}
+\clearpage
+
+\subsection{The \emph{appVersion} field}
+\lipsum[2-4] 
+\subsection{The \emph{maintainers} field}
+\lipsum[2-4] 
+\subsection{Other available fields}
+\lipsum[2-4] 
+
+\section{The \enquote{values.yaml}}
+
+\subsection{Images}
+
+The core of every application in Kubernetes is the image used for deploying it.
+This is being done in the \enquote{image} section of the  \gls{values}.
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: nginx
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+# This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+\end{minted}
+\caption{The \enquote{image} section of the \gls{values}}\label{code:image_section}
+\end{figure}
+
+Things to note here are the 3 fields it should contain:
+
+\begin{enumerate}
+	\item{
+		The repository which sets the image name.
+		This would also include things like \enquote{ghcr.io} or other custom repositories used.
+	}
+	\item{
+		The \enquote{pullPolicy} which defines how often it is pulled
+		By default this should be \enquote{IfNotPresent}.
+		For latest tags it automatically defaults however to \enquote{Always} which, as the name says, will always pull the image when a pod is started.
+	}
+	\item{
+		The \enquote{tag} field defines the value after the colon in a docker image.
+		This should stay as an empty string by default since it will be pulled from the chart's \enquote{appVersion} field usually.
+		It is meant to allow a consumer to change this if they need to.
+	}
+\end{enumerate}
+
+Additionally there is the \enquote{imagePullSecrets} field which allows you to pull from private repositories. For more information on this take a look at \url{https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/}
+\clearpage
+
+\subsection{Service Account}
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
+#This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+\end{minted}
+\caption{The \enquote{serviceAccount} section of the \gls{values}}\label{code:service_account_section}
+\end{figure}
+
+Service Accounts are required for accessing the resources of the \gls{k8s} Cluster itself.
+They are scoped accounts to the cluster and require most likely more setup in the templates to actually be useful.
+They are commonly used by operators or similar things which listen to or write to resources in the cluster.
+\clearpage
+
+\subsection{Service and Ingress}
+\lipsum[2-4]
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 80
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  # kubernetes.io/ingress.class: nginx
+  # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+\end{minted}
+\caption{The \enquote{service} section and the \enquote{ingress} section of the \gls{values}}\label{code:service_and_ingress_section}
+\end{figure}
+\clearpage
+
+\subsection{Volumes}
+\lipsum[2-4] 
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+# Additional volumeMounts on the output Deployment definition.
+
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+\end{minted}
+\caption{The \enquote{volumes} section and the \enquote{volumeMounts} section of the \gls{values}}\label{code:volumes_section}
+\end{figure}
+\clearpage
+
+\subsection{Security Contexts}
+\lipsum[2-4] 
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
+podSecurityContext: {}
+# fsGroup: 2000
+
+securityContext: {}
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+\end{minted}
+\caption{The security context sections of the \gls{values}}\label{code:security_section}
+\end{figure}
+\clearpage
+
+\subsection{Resources}
+\lipsum[2-4] 
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
+resources: {}
+# We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube. If you do want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+# limits:
+#   cpu: 100m
+#   memory: 128Mi
+# requests:
+#   cpu: 100m
+#   memory: 128Mi
+\end{minted}
+\caption{The \enquote{resources} section of the \gls{values}}\label{code:resources_section}
+\end{figure}
+\clearpage
+
+\subsection{Probes}
+
+TODO: Explain why it probably makes no sense to keep in values.yaml
+
+\lipsum[2-4] 
+\clearpage
+
+\subsection{Autoscaling}
+\lipsum[2-4] 
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
+#This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+\end{minted}
+\caption{The \enquote{autoscaling} section of the \gls{values}}\label{code:autoscaling_section}
+\end{figure}
+\clearpage
+
+\subsection{Misc}
+\lipsum[2-4] 
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/ 
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+\end{minted}
+\caption{Values which affect the pods or the deployment but are not in a specific group of things}\label{code:misc_values}
+\end{figure}
+\clearpage
+
+\section{The \enquote{NOTES.txt}}
+\lipsum[2-4] 
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{text}
+TODO
+\end{minted}
+\caption{A simple NOTES.txt}\label{code:NOTES.txt}
+\end{figure}
+\clearpage
