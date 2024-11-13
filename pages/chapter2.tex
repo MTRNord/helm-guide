@@ -6,13 +6,12 @@ The typical structure looks like this\footnote{The test-connection.yaml file can
  .2 Chart.yaml.
  .2 README.md.
  .2 templates.
- .3 \_helpers.yaml.
+ .3 \_helpers.tpl.
  .3 NOTES.txt.
  .3 tests.
  .4 test-connection.yaml.
  .2  values.yaml.
 }
-\clearpage
 
 \section{The \enquote{Chart.yaml}}
 This is the file defining the metadata of the Helm Chart.
@@ -32,14 +31,16 @@ home: https://github.com/nordeck/matrix-neoboard
 \end{minted}
 \caption{A simple application Chart.yaml}\label{code:Chart.yaml}
 \end{figure}
-\clearpage
 
 \subsection{The \emph{appVersion} field}
-\lipsum[2-4] 
+The appVersion field is referring to the version of the application.
+It can be different from the version of the helm chart which is defined in the version field and is expected to contain the tag of the application's docker image.
+Be aware that this is not semver or similar but instead is an opaque string as helm won't make assumptions about the version of an application.
 \subsection{The \emph{maintainers} field}
-\lipsum[2-4] 
-\subsection{Other available fields}
-\lipsum[2-4] 
+Another section of the Chart.yaml is the \enquote{maintainers} field which allows you to set the maintainers of the application.
+This is not mandatory but useful if you publish this helm chart to some places.
+It is an array which contains a name, an email and a url field and is meant to contain each maintainer that works on the chart.
+However, in a company setting it can also be used to just have the company instead.
 
 \section{The \enquote{values.yaml}}
 
@@ -82,8 +83,8 @@ Things to note here are the 3 fields it should contain:
 	}
 \end{enumerate}
 
-Additionally there is the \enquote{imagePullSecrets} field which allows you to pull from private repositories. For more information on this take a look at \url{https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/}
-\clearpage
+Additionally, there is the \enquote{imagePullSecrets} field which allows you to pull from private repositories. For more information on this take a look at \url{https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/}
+
 
 \subsection{Service Account}
 
@@ -104,13 +105,13 @@ serviceAccount:
 \caption{The \enquote{serviceAccount} section of the \gls{values}}\label{code:service_account_section}
 \end{figure}
 
-Service Accounts are required for accessing the resources of the \gls{k8s} Cluster itself.
+Service Accounts are required for accessing the resources of the \gls{k8s} cluster itself.
 They are scoped accounts to the cluster and require most likely more setup in the templates to actually be useful.
 They are commonly used by operators or similar things which listen to or write to resources in the cluster.
-\clearpage
 
 \subsection{Service and Ingress}
-\lipsum[2-4]
+
+Ingresses and services usually come in pairs in a production ready application.
 
 \begin{figure}[h]
 \begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
@@ -139,11 +140,69 @@ ingress:
 \end{minted}
 \caption{The \enquote{service} section and the \enquote{ingress} section of the \gls{values}}\label{code:service_and_ingress_section}
 \end{figure}
-\clearpage
+
+A service consists of the service type and a port
+The type of service generally will be \enquote{ClusterIP} for production clusters.
+However, there are users which might want to prefer \enquote{NodePort} as a type instead of using an Ingress.
+Therefor it should be left as an option for users.
+
+For the port on the other hand it depends on the application.
+It is only useful to be kept as an option if the Dockerimage at runtime allows adjusting it.
+This is incredibly useful for \enquote{NodePort} users and should be preferred.
+It should default however to the application default to avoid confusion in case an enduser has to debug it.
+
+You can find more information about the service resource in \gls{k8s} at \url{https://kubernetes.io/docs/concepts/services-networking/service}.
+\bigskip
+The ingress of a Helm chart is used to represent public access point of an application.
+It is used to define one or multiple hosts or subpaths for the application.
+They should stay in the same pattern as above since ingresses do depend a lot on the user and their ingress software used.
+Additionally this is where the secrets and hosts for the tls certificate attached to the ingress are defined.
+It is safe to assume that a \gls{k8s} cluster has means to provide this certificate and therefor should not be part of the application chart itself.
 
 \subsection{Volumes}
-\lipsum[2-4] 
 
+Volumes and volume mounts are a way to describe storage in \gls{k8s} .
+In terms of a helm chart there are 2 things to differenciate here.
+On the one side we have mandatory storage which an application requires.
+Usually this is being named \enquote{persistence} in a helm chart and takes just the storage size and access modes definition.
+
+For example:
+
+\begin{figure}[h]
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
+## Persistence configuration for the media repository function.
+## This PVC will be mounted in either Synapse or a media_repo worker.
+##
+## NB; If you want to be able to scale this, you will have to set the
+## accessMode to RWX/ReadWriteMany.
+##
+persistence:
+  enabled: true
+  # existingClaim: synapse-data
+
+  # storageClass: "-"
+  accessMode: ReadWriteOnce
+  size: 10Gi
+\end{minted}
+\caption{The \enquote{persistence} section of the \gls{values}}\label{code:persistence_section}
+\end{figure}
+
+This example defines that the persistence is enabled, does not use an existing \Gls{pvc}.
+It also says that we use the \enquote{ReadWriteOnce} access mode meaning only one pod at a time can use it\cite{KubernetesPersistentVolume}.
+Last but not least it also defines that the size must be 10Gigabit for this storage.
+The storage class is not set which means the cluster default is used. 
+As there can be multiple storage providers it is desirable to have this as an option to allow a user to change this based on their cluster.
+
+Additionally, one could also not set \enquote{size} and \enquote{accessMode} and instead define an existing \gls{pvc}.
+That way the underlying \gls{pvc} will not be managed by the chart.
+\bigskip
+
+Additionally, to required storage there is the option to provide means to add optional user defined storage.
+The use for this depends on the application type.
+It allows defining the same volumes and volumeMounts definitions as explained in the \gls{k8s} Pod resource.
+As we do not know if in the end the user keeps using our image or forks it, it is a good idea to allow this flexiblity.
+
+Usually it looks something like this example:
 \begin{figure}[h]
 \begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
 # Additional volumes on the output Deployment definition.
@@ -161,10 +220,10 @@ volumeMounts: []
 \end{minted}
 \caption{The \enquote{volumes} section and the \enquote{volumeMounts} section of the \gls{values}}\label{code:volumes_section}
 \end{figure}
-\clearpage
 
 \subsection{Security Contexts}
-\lipsum[2-4] 
+Security Contexts allow changing the rules of the sandbox.
+They get as is added to a \Gls{deployment resource}.
 
 \begin{figure}[h]
 \begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
@@ -178,14 +237,34 @@ securityContext: {}
 # readOnlyRootFilesystem: true
 # runAsNonRoot: true
 # runAsUser: 1000
-# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 \end{minted}
 \caption{The security context sections of the \gls{values}}\label{code:security_section}
 \end{figure}
-\clearpage
+
+Notable things you might want by default but need Docker adjustments are:
+
+\begin{enumerate}
+	\item{
+		\enquote{readOnlyRootFilesystem} should be enabled.
+		This ensures that the system never writes to the temporary filesystem of the pod.
+		For \enquote{/tmp} you should prefer an \enquote{emptyDir} volume instead.
+	}
+	\item{
+		\enquote{runAsNonRoot}, \enquote{fsGroup} and \enquote{runAsUser} should be set to a non root user.
+		This requires docker changes to work.
+		This ensures that escaping the sandbox is made harder than it would be with a root user.
+	}
+	\item{
+		\enquote{capabilities} should default to dropping all.
+		Ideally these should be tight scoped.
+		Depending on the application common ones are network related and chroot related capabilities with webservers.
+	}
+\end{enumerate}
 
 \subsection{Resources}
-\lipsum[2-4] 
+Resources allow \gls{k8s} to better schedule the pods spawned by the application.
+
+I suggest \url{https://home.robusta.dev/blog/stop-using-cpu-limits} for further information on this.
 
 \begin{figure}[h]
 \begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
@@ -203,17 +282,23 @@ resources: {}
 \end{minted}
 \caption{The \enquote{resources} section of the \gls{values}}\label{code:resources_section}
 \end{figure}
-\clearpage
 
 \subsection{Probes}
+\Gls{k8s} comes with 3 types of probes\cite{ConfigureLivenessReadiness}.
+2 of these are commonly used in applications, which are the \enquote{readiness} and the \enquote{liveness} probes.
+The \enquote{startup} probe is only used when an application is slow to start and there is a longer waiting time to be expected.
 
-TODO: Explain why it probably makes no sense to keep in values.yaml
+Generally you want to have a health endpoint for this on your application which can be pinged.
+Alternatively this also can be a command within the pod.
+Usually this also is a command that can be fixed for the helm chart, but when you do that you should have the timeouts exposed in the \gls{values}.
 
-\lipsum[2-4] 
-\clearpage
+\subsection{Auto scaling}
+Auto scaling is the automation of replication.
+For this to work your application needs to support being able to be horizontally scalable.
+This means it can run multiple times next to each other without causing inconsistent state or other side effects that may affect a user.
 
-\subsection{Autoscaling}
-\lipsum[2-4] 
+With auto scaling you can make it automatically add pods or remove pods based on the demand which can be measured using CPU or memory usage.
+It also allows you to define the maximum and minimum replicas.
 
 \begin{figure}[h]
 \begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
@@ -227,11 +312,36 @@ autoscaling:
 \end{minted}
 \caption{The \enquote{autoscaling} section of the \gls{values}}\label{code:autoscaling_section}
 \end{figure}
-\clearpage
 
 \subsection{Misc}
-\lipsum[2-4] 
+Apart from well defined sections there are also some ungrouped fields available.
 
+The \enquote{replicaCount} here is the amount of pods being spawned.
+Contrary to auto scaling this is a constant amount which \gls{k8s} will always try to aim for.
+It however will respect the resource requests and limits.
+This means that it might not be able to fulfill the amount if there are not enough resources available on a cluster.
+
+\bigskip
+There are also overrides which allow an admin to rename the deployed chart.
+This is useful when a chart changed behavior and the calculation of a name changed or when it was migrated from another deployment and namespace of deployment changed which usually is part of the full name.
+
+\bigskip
+Annotations and labels are useful for various things like interaction with external tooling.
+They are usually deployment specific.
+
+\bigskip
+
+\enquote{nodeSelector}, \enquote{tolerations} and \enquote{affinity} are generally used to influence how an application is being deployed within a cluster.
+The nodeSelector value can be used to for example deploy it on a specific node with a specific label.
+
+The tolerations are helping with nodes which have taints.
+Taints prevent scheduling unless tolerated.
+A common example of a taint for example is the control plane of the cluster.
+It is usually used to restrict a node for important core tasks of the cluster.
+
+\enquote{Affinity} is another more flexible way for the application to define where it can get scheduled.
+A common usecase is to use anti-affinity where pods \enquote{repel} each other so you have redundancy of replicas across the cluster.
+You can configure it to not allow a second pod of the same application on the same node.
 \begin{figure}[h]
 \begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
@@ -256,15 +366,44 @@ affinity: {}
 \end{minted}
 \caption{Values which affect the pods or the deployment but are not in a specific group of things}\label{code:misc_values}
 \end{figure}
-\clearpage
 
 \section{The \enquote{NOTES.txt}}
-\lipsum[2-4] 
+The \enquote{NOTES.txt} is a special template file, which allows you to display a message at the end of an installation or upgrade.
+It behaves like any other template and is then rendered to the console after a successful deployment.
+
+Commonly it contains information about possible manual tasks you want to take like creating the initial user and also the information where you can reach the deployment.
 
 \begin{figure}[h]
-\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{text}
-TODO
+\begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{jinja}
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "foo.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch its status by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "foo.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "foo.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.service.port }}
+{{- else if contains "ClusterIP" .Values.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "foo.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+{{- end }}
 \end{minted}
-\caption{A simple NOTES.txt}\label{code:NOTES.txt}
+\caption{A standard NOTES.txt}\label{code:NOTES.txt}
 \end{figure}
-\clearpage
+
+\section{\_helpers.tpl}
+
+The helpers file is a file which does not get rendered.
+It however contains a bunch of useful global variables in its generated default form.
+Important things like the deployment's full name, common labels for identifying the deployment, name of the service account and a combination of name and version.
+Beyond that it can be extended for anything that may be needed to be consistent across multiple templates.

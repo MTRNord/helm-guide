@@ -3,7 +3,7 @@
 % arara: makeglossaries if found('aux', '@istfilename')
 % arara: lualatex: { shell: yes}
 % arara: lualatex: { shell: yes }
-\documentclass[english,10pt,a4paper]{scrbook}
+\documentclass[english,10pt,a4paper]{scrreprt}
 \usepackage{style}
 \usepackage{lipsum} 
 
@@ -23,6 +23,11 @@
 \newacronym{oci}{OCI}{Open Container Initiative}
 \newacronym{ux}{UX}{User Experience}
 \newacronym{values}{values file}{values.yaml}
+\newacronym[description={A resource which describes how a volume should be allocated and how it is usable by pods or other resources}]{pvc}{pvc}{Private Volume Claim}
+\newglossaryentry{deployment resource}{
+	name={Deployment resource},
+	description={A resource which allows replication of pods and rolling updates.}
+}
 % Make it
 \makeglossaries
 
@@ -36,6 +41,43 @@
 \chapter{Structure of a Helm Package}
 \include{pages/chapter2}
 
+\chapter{Usage of a Helm Package}
+
+\section{Atomic mode}
+One of the less mentioned things helm can do is that it can atomically deploy things to a cluster.
+
+What does atomically mean here?
+Specifically it means that an application will (if the helm chart was configured correctly) will never let the application get stuck in a broken state on upgrades.
+
+To do that it provides the \enquote{--atomic} flag usable on \enquote{helm upgrade}.
+When the flag is provided helm will wait until the application entered a successful state where all pods report being ready in \Gls{k8s}.
+If this is not archived helm will automatically roll back to the last successful deployment version.
+It also ensures that the old application still is running while trying this by utilizing the way Deployments in \Gls{k8s} work.
+A deployment with rolling update will spawn a new pod, wait for it to get successful and only then stop the old pod.
+The default timeout for Helm's atomic deployment is at 5m.
+It is generally a good idea to use this however tools like argocd generally do not expose this mode to the users.
+
+\section{Listing deployments and rollback of deployments}
+Helm automatically records a list of deployments done to each helm chart.
+This allows for 2 great things:
+\begin{enumerate}
+  \item Your application is deployed in a way which can be audited
+  \item Your application can be rolled back easily to a previous state even if you do not know the values anymore
+\end{enumerate}
+
+To view the history of a specific helm chart deployment you can use \enquote{helm history <release\_name> -n <namespace>}.
+Note however that unless you add the `--max` flag only the last 256 revisions will be displayed.
+
+When you end up in a broken deployment or need to downgrade the application version this information can be coupled with \enquote{helm rollback}.
+You can either use \enquote{helm rollback <release\_name>} to roll back to the previous revision or \enquote{helm rollback <release\_name> <revision>} to rollback to a specific revision.
+
+Important to note is that this does not handle database migrations.
+
+\section{Linting}
+Apart from operational commands helm also allows you to lint a package.
+To do that there is the \enquote{helm lint <PATH>} subcommand available which provides a relatively small linter for the helm chart.
+It is generally a good idea to use this.
+You can find more information on this at \url{https://helm.sh/docs/helm/helm_lint/}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 \cleardoublepage
