@@ -14,7 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install texlive
-      run: sudo apt install -y texlive-full
+      run: |
+        sudo sed -i 's/azure\.//' /etc/apt/sources.list
+        sudo apt-get update
+        sudo apt install -y texlive-full
     - uses: actions/setup-java@v4
       with:
         distribution: 'graalvm' # See 'Supported distributions' for available options
@@ -39,7 +42,10 @@ jobs:
     - name: Compile arara
       run: ./compile.sh
     - name: Install texlive
-      run: sudo apt install -y libreoffice pandoc texlive-full
+      run: |
+        sudo sed -i 's/azure\.//' /etc/apt/sources.list
+        sudo apt-get update
+        sudo apt install -y libreoffice pandoc texlive-full
     - name: Compile LaTeX document
       run: ./build.sh
     - name: Build markdown
