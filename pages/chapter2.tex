@@ -34,13 +34,13 @@ home: https://github.com/nordeck/matrix-neoboard
 
 \subsection{The \emph{appVersion} field}
 The appVersion field is referring to the version of the application.
-It can be different from the version of the helm chart which is defined in the version field and is expected to contain the tag of the application's docker image.
-Be aware that this is not semver or similar but instead is an opaque string as helm won't make assumptions about the version of an application.
+It can be different from the version of the Helm chart which is defined in the version field and is expected to contain the tag of the application's docker image.
+Be aware that this is not semver\cite{helmauthorsAppVersionsField} or similar but instead is an opaque string as Helm won't make assumptions about the version of an application.
 \subsection{The \emph{maintainers} field}
 Another section of the Chart.yaml is the \enquote{maintainers} field which allows you to set the maintainers of the application.
-This is not mandatory but useful if you publish this helm chart to some places.
+This is not mandatory but useful if you publish this Helm chart to some places.
 It is an array which contains a name, an email and a url field and is meant to contain each maintainer that works on the chart.
-However, in a company setting it can also be used to just have the company instead.
+However, in a company setting it can also be used to just refer to the company instead.
 
 \section{The \enquote{values.yaml}}
 
@@ -74,7 +74,7 @@ Things to note here are the 3 fields it should contain:
 	\item{
 		The \enquote{pullPolicy} which defines how often it is pulled
 		By default this should be \enquote{IfNotPresent}.
-		For latest tags it automatically defaults however to \enquote{Always} which, as the name says, will always pull the image when a pod is started.
+		For latest tags it automatically defaults however to \enquote{Always} which, as the name says, will always pull the image when a \Gls{pod} is started.
 	}
 	\item{
 		The \enquote{tag} field defines the value after the colon in a docker image.
@@ -83,14 +83,14 @@ Things to note here are the 3 fields it should contain:
 	}
 \end{enumerate}
 
-Additionally, there is the \enquote{imagePullSecrets} field which allows you to pull from private repositories. For more information on this take a look at \url{https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/}
+Additionally, there is the \enquote{imagePullSecrets} field which allows you to pull from private repositories. For more information on this take a look at \url{https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/}.
 
 
 \subsection{Service Account}
 
 \begin{figure}[h]
 \begin{minted}[numbers=left, frame=lines,breaklines,breakanywhere,samepage=false]{yaml}
-#This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -141,19 +141,19 @@ ingress:
 \caption{The \enquote{service} section and the \enquote{ingress} section of the \gls{values}}\label{code:service_and_ingress_section}
 \end{figure}
 
-A service consists of the service type and a port
+A service consists of the service type and a port.
 The type of service generally will be \enquote{ClusterIP} for production clusters.
 However, there are users which might want to prefer \enquote{NodePort} as a type instead of using an Ingress.
 Therefor it should be left as an option for users.
 
 For the port on the other hand it depends on the application.
-It is only useful to be kept as an option if the Dockerimage at runtime allows adjusting it.
+It is only useful to be kept as an option if the container image at runtime allows adjusting it.
 This is incredibly useful for \enquote{NodePort} users and should be preferred.
-It should default however to the application default to avoid confusion in case an enduser has to debug it.
-
+It should default however to the application default to avoid confusion in case an end-user has to debug it.
 You can find more information about the service resource in \gls{k8s} at \url{https://kubernetes.io/docs/concepts/services-networking/service}.
+
 \bigskip
-The ingress of a Helm chart is used to represent public access point of an application.
+The ingress of a Helm chart is used to represent the public access point of an application.
 It is used to define one or multiple hosts or subpaths for the application.
 They should stay in the same pattern as above since ingresses do depend a lot on the user and their ingress software used.
 Additionally this is where the secrets and hosts for the tls certificate attached to the ingress are defined.
@@ -161,10 +161,10 @@ It is safe to assume that a \gls{k8s} cluster has means to provide this certific
 
 \subsection{Volumes}
 
-Volumes and volume mounts are a way to describe storage in \gls{k8s} .
-In terms of a helm chart there are 2 things to differenciate here.
+Volumes and volume mounts are a way to describe storage in \gls{k8s}.
+In terms of a Helm chart there are 2 things to differenciate here.
 On the one side we have mandatory storage which an application requires.
-Usually this is being named \enquote{persistence} in a helm chart and takes just the storage size and access modes definition.
+Usually this is being named \enquote{persistence} in a Helm chart and takes just the storage size and access modes definition.
 
 For example:
 
@@ -189,7 +189,7 @@ persistence:
 
 This example defines that the persistence is enabled, does not use an existing \Gls{pvc}.
 It also says that we use the \enquote{ReadWriteOnce} access mode meaning only one pod at a time can use it\cite{KubernetesPersistentVolume}.
-Last but not least it also defines that the size must be 10Gigabit for this storage.
+Last but not least it also defines that the size must be \qty{10}{\giga\byte} for this storage.
 The storage class is not set which means the cluster default is used. 
 As there can be multiple storage providers it is desirable to have this as an option to allow a user to change this based on their cluster.
 
@@ -197,9 +197,9 @@ Additionally, one could also not set \enquote{size} and \enquote{accessMode} and
 That way the underlying \gls{pvc} will not be managed by the chart.
 \bigskip
 
-Additionally, to required storage there is the option to provide means to add optional user defined storage.
+In addition to required storage, there is the option to provide means to add optional user defined storage.
 The use for this depends on the application type.
-It allows defining the same volumes and volumeMounts definitions as explained in the \gls{k8s} Pod resource.
+It allows defining the same volumes and volumeMounts definitions as explained\cite{Pods} in the \gls{pod} resource.
 As we do not know if in the end the user keeps using our image or forks it, it is a good idea to allow this flexiblity.
 
 Usually it looks something like this example:
@@ -247,6 +247,7 @@ Notable things you might want by default but need Docker adjustments are:
 	\item{
 		\enquote{readOnlyRootFilesystem} should be enabled.
 		This ensures that the system never writes to the temporary filesystem of the pod.
+		As a result of this an attacker has a harder time to inject changes into a Pod which would affect the end-user in case a container has been compromised.
 		For \enquote{/tmp} you should prefer an \enquote{emptyDir} volume instead.
 	}
 	\item{
@@ -256,7 +257,7 @@ Notable things you might want by default but need Docker adjustments are:
 	}
 	\item{
 		\enquote{capabilities} should default to dropping all.
-		Ideally these should be tight scoped.
+		Ideally these should be tightly scoped.
 		Depending on the application common ones are network related and chroot related capabilities with webservers.
 	}
 \end{enumerate}
@@ -290,7 +291,7 @@ The \enquote{startup} probe is only used when an application is slow to start an
 
 Generally you want to have a health endpoint for this on your application which can be pinged.
 Alternatively this also can be a command within the pod.
-Usually this also is a command that can be fixed for the helm chart, but when you do that you should have the timeouts exposed in the \gls{values}.
+Usually this also is a command that can be fixed for the Helm chart, but when you do that you should have the timeouts exposed in the \gls{values}.
 
 \subsection{Auto scaling}
 Auto scaling is the automation of replication.
@@ -336,7 +337,7 @@ The nodeSelector value can be used to for example deploy it on a specific node w
 
 The tolerations are helping with nodes which have taints.
 Taints prevent scheduling unless tolerated.
-A common example of a taint for example is the control plane of the cluster.
+A common example of a taint is the control plane taint for the control plane nodes of the cluster.
 It is usually used to restrict a node for important core tasks of the cluster.
 
 \enquote{Affinity} is another more flexible way for the application to define where it can get scheduled.

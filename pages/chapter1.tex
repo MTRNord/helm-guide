@@ -3,7 +3,7 @@ Helm is a system for managing \Glspl{k8sResources} and being able to deliver a s
 It is one of the most used packaging systems in the \Gls{k8s} ecosystem and helps to provide a consistent \gls{ux} in the ecosystem.
 
 \section{Helm as a packaging system}
-Helm itself describes itself as \enquote{The package manager for Kubernetes}\cite{helmauthorsHelm}
+Helm refers to itself as \enquote{The package manager for Kubernetes}\cite{helmauthorsHelm}.
 This means it's main goal and design is centered around being able to package an application, deal with dependencies and versioning.
 
 As a result of this Helm is a generic way to define an application deployment.
@@ -12,32 +12,32 @@ In the typical Docker illustration style the Helm deployment would be a delivery
 
 \section{Helm as a template engine}
 As part of being a package manager for Kubernetes it has to deal with definitions written in pure YAML.
-Therefor it features a powerful template engine which works similar to how Ansible's template engine works.
+Therefore it features a powerful template engine which works similar to how Ansible's template engine works.
 
-Under the hood this is archived by using the Go template language\cite{helmauthorsTemplateFunctionsPipelines,thegoauthorsTemplatePackageText} as well as additional go functions provided to the users.
+Under the hood this is achieved by using the Go template language\cite{helmauthorsTemplateFunctionsPipelines,thegoauthorsTemplatePackageText} as well as additional go functions provided to the users.
 
 On top of the template language itself it also provides the option to print messages at the end of the installation or upgrade as  well as nesting charts, having libraries for charts and using a global value context.
-These are needed to provide consistent helm charts across a company or set of related charts and to ensure a nice \gls{ux} for those deploying said chart.
+These are needed to provide consistent Helm charts across a company or set of related charts and to ensure a nice \gls{ux} for those deploying said chart.
 
 \section{Features Helm gives us over pure \Glspl{k8sResources}}
-Pure \Glspl{k8sResources} come with multiple downsides over helm or similar packaging systems for \Gls{k8s}.
+Pure \Glspl{k8sResources} come with multiple downsides over Helm or similar packaging systems for \Gls{k8s}.
 
 \Gls{k8s} brings no update management or atomic deployment management itself.
 This means that an admin would need to ensure that they manually deploy each thing every time, possibly in the correct order and then has to ensure that it did not break.
 If despite all efforts it did break you now end up with no easy way to rollback.
-Ideally one has a git to go from but this might not be a safe operation either and may lead to new issues.
+Ideally one has a VCS to go from but this might not be a safe operation either and may lead to new issues.
 
 Helm on the other side brings two major things to the table.
-It provides a way to manage the version independent of the product version.
+It provides a way to manage the chart version independent of the product version.
 This is called the \emph{version} of the Helm package, while the version of the product is called \enquote{\emph{appVersion}} in Helm.
 Helm also provides you with a history of deployments.
 This list tracks if a deployment is in progress, successful, failed or rolled back.
-Due to this list helm allows you to seamlessly \emph{rollback} to any prior deployment you made.\footnote{While a \emph{rollback} is possible it is not possible to jump forward afterwards}
-Additionally to the manual rollback Helm has the feature of atomic updates, which automatically will rollback to the last successful deployment version in case of invalid templates, values\footnote{Only syntactic errors} or failures to rollout the deployment in the given timeout.
+Due to this list Helm allows you to seamlessly \emph{rollback} to any prior deployment you made.\footnote{While a \emph{rollback} is possible it is not possible to jump forward afterwards}
+Additionally to the manual rollback Helm has the feature of atomic updates, which automatically will roll back to the last successful deployment version in case of invalid templates, values\footnote{Only syntactic errors} or failures to roll out the deployment within the given timeout period.
 
 Beyond the managing of versions and updates Helm also provides a way to share and therefor depend on other charts.
-To do this Helm has their own Chart Repo setup or can use regular \gls{oci} repositories.
-Using these repositories it allows then to define dependencies on existing helm charts.
+To do this Helm has it's own Chart-repository setup or can use regular \gls{oci} repositories.
+Using these repositories it allows then to define dependencies on existing Helm charts.
 This is especially useful to fulfill the goal of having a single deployable bundle for an application.
-For example an API server might want to bundle a PostgreSQL helm chart as a dependency.
-Instead of then defining it themselves it can then depend on existing Charts and provide a consistent experience for consumers in the ecosystem.
+For example an API server might want to bundle a PostgreSQL Helm chart as a dependency.
+Instead of then defining it themselves it can depend on existing Charts and provide a consistent experience for consumers in the ecosystem.
